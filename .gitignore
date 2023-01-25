@@ -1,0 +1,6 @@
+node_modules
+config.js
+tokens.json
+assets/*
+!assets/badum-tss.mp3
+!assets/badum-tss.gif

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="">
+
+<head>
+	<meta charset="utf-8">
+	<title>Twitch MIDI SoundBoard browser source</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#fafafa">
+	<link rel="stylesheet" href="style.css">
+	<script>
+		const global = {}; // Allow using the same config.js file in the Node.js server and the front end
+		global.CONFIG = {};
+	</script>
+	<script src="config.js"></script>
+	<script src="soundboard.js"></script>
+</head>
+
+<body>
+	<div id="content"></div>
+	<div id="message"></div>
+</body>
+
+</html>
