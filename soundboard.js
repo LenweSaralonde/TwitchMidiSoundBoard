@@ -6,6 +6,7 @@ let zIndex = 0;
 
 let sounds = new Map(); // Audio players
 let gifs = new Map(); // GIF players
+let videos = new Map(); // Video players
 
 /**
  * Preload all sounds from config
@@ -23,6 +24,15 @@ function preloadSounds() {
 		gif.remove();
 		gifs.delete(key);
 	};
+
+	// Remove all videos
+	for (let [key, video] of videos) {
+		video.stop();
+		video.remove();
+		videos.delete(key);
+	};
+
+	const content = document.querySelector("#content");
 
 	// Add new elements
 	for (const sound of CONFIG.SOUNDS) {
@@ -63,7 +73,7 @@ function preloadSounds() {
 
 			// Load GIF as promise
 			const loadPromise = new Promise(resolve => gif.load_url(`assets/${sound.gif}`, () => {
-				// Resize canvas size to match container size
+				// Resize canvas to match container size
 				const canvas = gif.get_canvas();
 				const viewportRatio = content.clientWidth / content.clientHeight;
 				const canvasRatio = canvas.width / canvas.height;
@@ -91,12 +101,77 @@ function preloadSounds() {
 				gif.move_to(0);
 				gif.play();
 			}
+
 			const stop = () => {
+				div.classList.remove('visible');
 				div.classList.add('hidden');
 				gif.pause();
 			}
+
 			const remove = () => div.remove();
+
 			gifs.set(sound.gif, { gif, loadPromise, play, stop, remove });
+		}
+
+		// Video element
+		if (sound.video) {
+			// Create video container
+			const div = document.createElement('div');
+			div.classList.add('hidden');
+			content.append(div);
+
+			// Create video player
+			const video = document.createElement('video');
+			video.src = 'assets/' + sound.video;
+			video.autoplay = false;
+			video.controls = false;
+			video.loop = false;
+			video.preload = 'auto';
+			video.addEventListener('ended', () => {
+				div.classList.remove('visible');
+				div.classList.add('hidden');
+			});
+			div.append(video);
+
+			// Load video as promise
+			const loadPromise = new Promise(resolve => video.addEventListener('canplaythrough', () => {
+				// Resize video to match container size
+				const viewportRatio = content.clientWidth / content.clientHeight;
+				const videoRatio = video.videoWidth / video.videoHeight;
+				if (viewportRatio > videoRatio) {
+					// Viewport wider than the image: set max height
+					video.style.width = `${content.clientHeight * videoRatio}px`;
+					video.style.height = `${content.clientHeight}px`;
+					video.style.left = `${(content.clientWidth - content.clientHeight * videoRatio) / 2}px`;
+				} else {
+					// Video wider than the viewport: set max width
+					video.style.width = `${content.clientWidth}px`;
+					video.style.height = `${content.clientWidth / videoRatio}px`;
+					video.style.top = `${(content.clientHeight - content.clientWidth / videoRatio) / 2}px`;
+				}
+
+				// Video is ready to play
+				resolve();
+			}));
+
+			const play = () => {
+				div.classList.remove('hidden');
+				div.classList.add('visible');
+				zIndex++;
+				div.style.zIndex = zIndex;
+				video.currentTime = 0;
+				video.play();
+			};
+
+			const stop = () => {
+				div.classList.remove('visible');
+				div.classList.add('hidden');
+				video.pause();
+			};
+
+			const remove = () => div.remove();
+
+			videos.set(sound.video, { video, loadPromise, play, stop, remove });
 		}
 	}
 }
@@ -119,6 +194,12 @@ async function playSound(sound) {
 	if (sound.gif && gifs.has(sound.gif)) {
 		loadPromises.push(gifs.get(sound.gif).loadPromise);
 		playFunctions.push(gifs.get(sound.gif).play);
+	}
+
+	// Video element
+	if (sound.video && videos.has(sound.video)) {
+		loadPromises.push(videos.get(sound.video).loadPromise);
+		playFunctions.push(videos.get(sound.video).play);
 	}
 
 	// Make sure all assets have finished loading

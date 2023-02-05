@@ -63,7 +63,7 @@ div#message {
 	display: table-cell;
 }
 
-div#content > div, div#content canvas {
+div#content > div, div#content canvas, div#content video {
 	position: absolute;
 }
 
