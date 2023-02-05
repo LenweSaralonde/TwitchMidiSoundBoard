@@ -56,6 +56,7 @@ function preloadSounds() {
 				loop_mode: false,
 				progressbar_height: 0,
 				on_end: function () {
+					div.classList.remove('visible');
 					div.classList.add('hidden');
 				}
 			});
@@ -84,6 +85,7 @@ function preloadSounds() {
 
 			const play = () => {
 				div.classList.remove('hidden');
+				div.classList.add('visible');
 				zIndex++;
 				div.style.zIndex = zIndex;
 				gif.move_to(0);

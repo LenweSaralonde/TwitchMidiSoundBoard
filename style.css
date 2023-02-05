@@ -67,6 +67,20 @@ div#content > div, div#content canvas {
 	position: absolute;
 }
 
+div#content > div.visible {
+	display: block !important;
+	visibility: visible;
+	opacity: 1;
+	transition: opacity 0ms linear;
+}
+
+div#content > div.hidden {
+	display: block !important;
+	visibility: hidden;
+	opacity: 0;
+	transition: visibility 0s 200ms, opacity 200ms linear;
+}
+
 div.message, div.error {
 	background-color: #808080;
 	font-size: 14vh;
