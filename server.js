@@ -237,32 +237,28 @@ async function startWebServer() {
 					await rootPage(url, req, res);
 					break;
 
-				// Configuration script
+				// Scripts
 				case '/config.js':
-					res.statusCode = 200;
-					res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
-					res.end(await fs.readFile('./config.js', 'UTF-8'));
-					break;
-
-				// Main script
 				case '/soundboard.js':
+				case '/libgif-js/libgif.js':
+				case '/libgif-js/rubbable.js':
 					res.statusCode = 200;
 					res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
-					res.end(await fs.readFile('./soundboard.js', 'UTF-8'));
+					res.end(await fs.readFile(`.${url.pathname}`, 'UTF-8'));
 					break;
 
-				// Main stylesheet
+				// Stylesheets
 				case '/style.css':
 					res.statusCode = 200;
 					res.setHeader('Content-Type', 'text/css; charset=utf-8');
-					res.end(await fs.readFile('./style.css', 'UTF-8'));
+					res.end(await fs.readFile(`.${url.pathname}`, 'UTF-8'));
 					break;
 
-				// Favicon
+				// Favicons
 				case '/favicon.ico':
 					res.statusCode = 200;
 					res.setHeader('Content-Type', 'image/x-icon');
-					res.end(await fs.readFile('./favicon.ico'));
+					res.end(await fs.readFile(`.${url.pathname}`));
 					break;
 
 				// Assets

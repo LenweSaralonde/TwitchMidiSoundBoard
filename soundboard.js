@@ -2,12 +2,130 @@ let CONFIG = global.CONFIG;
 
 let webSocket; // web socket to the server
 let tryReconnectWebSocketTimeout; // timeout to automatically reconnect to the WS
+let zIndex = 0;
 
-function playSound(sound) {
-	// TODO
-	const audio = new Audio('assets/' + sound.sound);
-	audio.play();
-	document.querySelector("#content").innerHTML = `<img src="assets/${sound.image}" style="width: 100vw; max-height: 100wh">`;
+let sounds = new Map(); // Audio players
+let gifs = new Map(); // GIF players
+
+/**
+ * Preload all sounds from config
+ */
+function preloadSounds() {
+	// Remove all sounds
+	for (let [key, sound] of sounds) {
+		sound.stop();
+		sounds.delete(key);
+	};
+
+	// Remove all GIFs
+	for (let [key, gif] of gifs) {
+		gif.stop();
+		gif.remove();
+		gifs.delete(key);
+	};
+
+	// Add new elements
+	for (const sound of CONFIG.SOUNDS) {
+		// Audio element
+		if (sound.sound) {
+			const audio = new Audio('assets/' + sound.sound);
+			const loadPromise = new Promise(resolve => audio.addEventListener('canplaythrough', resolve));
+			const play = () => {
+				audio.currentTime = 0;
+				audio.play();
+			};
+			const stop = () => audio.pause();
+			sounds.set(sound.sound, { audio, loadPromise, play, stop });
+		}
+
+		// GIF element
+		if (sound.gif) {
+			// Create GIF container
+			const div = document.createElement('div');
+			div.classList.add('hidden');
+			content.append(div);
+
+			// Create GIF img tag
+			const img = document.createElement('img');
+			div.append(img);
+
+			// Create GIF player
+			const gif = new SuperGif({
+				gif: img,
+				auto_play: false,
+				loop_mode: false,
+				progressbar_height: 0,
+				on_end: function () {
+					div.classList.add('hidden');
+				}
+			});
+
+			// Load GIF as promise
+			const loadPromise = new Promise(resolve => gif.load_url(`assets/${sound.gif}`, () => {
+				// Resize canvas size to match container size
+				const canvas = gif.get_canvas();
+				const viewportRatio = content.clientWidth / content.clientHeight;
+				const canvasRatio = canvas.width / canvas.height;
+				if (viewportRatio > canvasRatio) {
+					// Viewport wider than the image: set max height
+					canvas.style.width = `${content.clientHeight * canvasRatio}px`;
+					canvas.style.height = `${content.clientHeight}px`;
+					canvas.style.left = `${(content.clientWidth - content.clientHeight * canvasRatio) / 2}px`;
+				} else {
+					// Image wider than the viewport: set max width
+					canvas.style.width = `${content.clientWidth}px`;
+					canvas.style.height = `${content.clientWidth / canvasRatio}px`;
+					canvas.style.top = `${(content.clientHeight - content.clientWidth / canvasRatio) / 2}px`;
+				}
+
+				// GIF is ready to play
+				resolve();
+			}));
+
+			const play = () => {
+				div.classList.remove('hidden');
+				zIndex++;
+				div.style.zIndex = zIndex;
+				gif.move_to(0);
+				gif.play();
+			}
+			const stop = () => {
+				div.classList.add('hidden');
+				gif.pause();
+			}
+			const remove = () => div.remove();
+			gifs.set(sound.gif, { gif, loadPromise, play, stop, remove });
+		}
+	}
+}
+
+/**
+ * Play a previously preloaded sound
+ * @param {object} sound
+ */
+async function playSound(sound) {
+	const loadPromises = [];
+	const playFunctions = [];
+
+	// Audio element
+	if (sound.sound && sounds.has(sound.sound)) {
+		loadPromises.push(sounds.get(sound.sound).loadPromise);
+		playFunctions.push(sounds.get(sound.sound).play);
+	}
+
+	// GIF element
+	if (sound.gif && gifs.has(sound.gif)) {
+		loadPromises.push(gifs.get(sound.gif).loadPromise);
+		playFunctions.push(gifs.get(sound.gif).play);
+	}
+
+	// Make sure all assets have finished loading
+	await Promise.all(loadPromises);
+
+	// Play audio and video
+	for (const play of playFunctions) {
+		play();
+	}
 }
 
 function displayError(message) {
@@ -105,6 +223,7 @@ function onWSMessage(event) {
 			// Update config
 			const config = message.data;
 			Object.assign(CONFIG, config);
+			preloadSounds();
 			console.log(`Configuration updated.`);
 			break;
 
@@ -134,6 +253,7 @@ window.addEventListener('load', function () {
 		displayError(`Invalid configuration&nbsp;!`);
 	} else {
 		displayMessage(`Starting soundboard...`);
+		preloadSounds();
 		connectWS();
 	}
 });
