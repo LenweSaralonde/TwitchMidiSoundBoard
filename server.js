@@ -329,7 +329,7 @@ async function startMIDI() {
 			console.log(`Note ON %s on channel %s.`, note, channel);
 			// Find Note ON sound and play it
 			CONFIG.SOUNDS
-				.filter(sound => sound.note && sound.note === msg.note)
+				.filter(sound => sound.note && sound.note === msg.note && (!sound.channel || sound.channel === channel))
 				.forEach(playSound);
 		});
 		console.log(`MIDI port %s open.`, CONFIG.MIDI_IN);
