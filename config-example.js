@@ -15,14 +15,21 @@ global.CONFIG = {
 	MIDI_IN: 'LPD8 mk2',
 
 	// Sounds
+	// This array defines the available sounds for your sound board. All the accepted object properties optional:
+	// - rewardId: Twitch reward ID (format 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
+	// - note: MIDI note number (0-127)
+	// - channel: MIDI channel (1-16) (if not set, the note may come from any MIDI channel)
+	// - gif: GIF animation to play
+	// - sound: Audio file to play
+	// - video: Video file to play
 	SOUNDS: [
 		// Badum tss
 		{
-			rewardId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // Twitch reward ID (Optional, if you want to use with sound with MIDI only.)
-			note: 36, // MIDI note 0-127 (Optional, if you want to use this sound as a Twitch reward only.)
-			channel: 10, // MIDI channel 1-16 (Optional, if not set, the note may come from any MIDI channel.)
-			gif: 'badum-tss.gif', // GIF file to play along with the sound.
-			sound: 'badum-tss.mp3' // Audio file to play
+			rewardId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+			note: 36,
+			channel: 10,
+			gif: 'badum-tss.gif',
+			sound: 'badum-tss.mp3',
 		},
 	]
 }
